@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="id" class="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tes Kepribadian Interaktif</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Menggunakan font Inter sebagai default */
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      /* Transisi halus untuk semua elemen */
+      * {
+        transition: background-color 0.3s ease, color 0.3s ease,
+          border-color 0.3s ease;
+      }
+      /* Custom scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+      .dark ::-webkit-scrollbar-track {
+        background: #2d3748;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #718096;
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+      }
+
+      /* Untuk Animasi Akordeon */
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+      }
+
+      /* Untuk Animasi Fade Pertanyaan */
+      .question-transition {
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      /* Styling untuk chart agar kursor berubah saat hover di label */
+      #result-chart:hover {
+        cursor: default;
+      }
+    </style>
+    <script>
+      // Konfigurasi Tailwind untuk mode gelap
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <!-- Tombol Mode Gelap -->
+    <div class="fixed top-4 right-4 z-50">
+      <button
+        id="darkModeToggle"
+        class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
+        <svg
+          id="sunIcon"
+          class="h-6 w-6 text-yellow-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+        <svg
+          id="moonIcon"
+          class="h-6 w-6 text-indigo-400 hidden"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <div
+      class="container mx-auto p-4 sm:p-6 md:p-8 min-h-screen flex flex-col items-center justify-center"
+    >
+      <!-- Layar Mulai -->
+      <div id="start-screen" class="text-center w-full max-w-2xl">
+        <h1
+          class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-4"
+        >
+          Temukan Tipe Kepribadian Anda
+        </h1>
+        <p
+          class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8"
+        >
+          Jawab 30 pertanyaan mendalam untuk mengungkap kekuatan unik Anda, gaya
+          komunikasi, dan jalur karir yang ideal.
+        </p>
+        <button
+          id="start-quiz-btn"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 sm:px-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300 text-lg sm:text-xl"
+        >
+          Mulai Kuis
+        </button>
+      </div>
+
+      <!-- Layar Kuis -->
+      <div id="quiz-screen" class="w-full max-w-3xl hidden">
+        <div
+          class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 md:p-8 relative"
+        >
+          <!-- Watermark -->
+          <a
+            href="https://www.instagram.com/rahmdsai"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="absolute top-4 left-4 z-10 text-xs bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm text-gray-600 dark:text-gray-300 py-1 px-2 sm:py-1.5 sm:px-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300"
+          >
+            Created by Rahmad Sains
+          </a>
+
+          <!-- Progress Bar -->
+          <div class="mb-6 mt-12 md:mt-6">
+            <div class="flex justify-between mb-1">
+              <span
+                class="text-sm sm:text-base font-medium text-indigo-700 dark:text-indigo-300"
+                >Pertanyaan <span id="question-number"></span> dari 30</span
+              >
+              <span
+                id="progress-percent"
+                class="text-xs sm:text-sm font-medium text-indigo-700 dark:text-indigo-300"
+              ></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+              <div
+                id="progress-bar"
+                class="bg-indigo-600 h-2.5 rounded-full"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Pertanyaan -->
+          <h2
+            id="question-text"
+            class="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 text-center min-h-[120px] sm:min-h-[100px]"
+          ></h2>
+
+          <!-- Pilihan Jawaban -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <button
+              id="option-a"
+              class="option-btn text-left p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-700 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-200"
+            >
+              <span class="font-semibold text-base sm:text-lg"></span>
+            </button>
+            <button
+              id="option-b"
+              class="option-btn text-left p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-700 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-200"
+            >
+              <span class="font-semibold text-base sm:text-lg"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layar Hasil -->
+      <div id="result-screen" class="w-full max-w-4xl hidden">
+        <div
+          class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 md:p-8 text-center relative"
+        >
+          <!-- Watermark -->
+          <a
+            href="https://www.instagram.com/rahmdsai"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="absolute top-4 left-4 z-10 text-xs bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm text-gray-600 dark:text-gray-300 py-1 px-2 sm:py-1.5 sm:px-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-lg hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300"
+          >
+            Created by Rahmad Sains
+          </a>
+
+          <p
+            class="text-base sm:text-lg text-gray-500 dark:text-gray-400 mt-8 sm:mt-4"
+          >
+            Tipe Kepribadian Anda adalah:
+          </p>
+          <h2
+            id="result-type"
+            class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-2 mb-2"
+          ></h2>
+          <h3
+            id="result-title"
+            class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-700 dark:text-gray-300 mb-8"
+          ></h3>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            <!-- Grafik Radar -->
+            <div class="bg-gray-50 dark:bg-gray-700 p-2 sm:p-4 rounded-lg">
+              <canvas id="result-chart"></canvas>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Klik label pada grafik untuk melihat penjelasan.
+              </p>
+            </div>
+
+            <!-- Deskripsi -->
+            <div class="text-left">
+              <div id="accordion-container">
+                <!-- Accordion items will be generated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Aksi -->
+          <div class="mt-10">
+            <h4 class="text-lg sm:text-xl font-bold mb-4">
+              Bagikan Hasil Anda
+            </h4>
+            <div class="flex justify-center items-center gap-3 sm:gap-4 mb-8">
+              <button
+                onclick="shareTo('twitter')"
+                class="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center gap-2 text-sm sm:text-base"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.223.085c.645 1.956 2.523 3.379 4.75 3.419a9.9 9.9 0 01-6.115 2.107c-.398 0-.79-.023-1.175-.068a13.963 13.963 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"
+                  />
+                </svg>
+                <span class="hidden sm:inline">Twitter</span>
+              </button>
+              <button
+                onclick="shareTo('facebook')"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center gap-2 text-sm sm:text-base"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
+                  />
+                </svg>
+                <span class="hidden sm:inline">Facebook</span>
+              </button>
+              <button
+                id="copy-link-btn"
+                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-3 sm:px-4 rounded-lg flex items-center gap-2 text-sm sm:text-base"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  ></path>
+                </svg>
+                <span class="hidden sm:inline">Salin</span>
+              </button>
+            </div>
+            <button
+              id="retake-quiz-btn"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-300 text-lg sm:text-xl"
+            >
+              Ulangi Kuis
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pesan Notifikasi -->
+      <div
+        id="notification"
+        class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-300"
+      >
+        Tautan disalin ke clipboard!
+      </div>
+    </div>
+
+    <!-- Modal Penjelasan Sifat -->
+    <div
+      id="trait-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4"
+      aria-labelledby="modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="relative w-full max-w-lg transform rounded-xl bg-white dark:bg-gray-800 p-6 text-left shadow-xl transition-all"
+      >
+        <div class="flex items-start justify-between">
+          <h3
+            class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"
+            id="modal-title"
+          ></h3>
+          <button
+            type="button"
+            id="modal-close-btn"
+            class="rounded-md p-1 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <span class="sr-only">Tutup</span>
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="mt-4">
+          <p
+            class="text-base sm:text-md text-gray-600 dark:text-gray-300"
+            id="modal-content"
+          ></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- DATA KUIS ---
+
+      const questions = [
+        // Dimensi 1: Fokus Energi (Ekstrovert vs Introvert) - 8 Pertanyaan
+        {
+          question:
+            "Setelah seharian berinteraksi dengan banyak orang, Anda merasa...",
+          options: {
+            a: "Berenergi dan bersemangat",
+            b: "Lelah dan butuh waktu sendiri",
+          },
+          scores: { a: { axis: "E", value: 1 }, b: { axis: "I", value: 1 } },
+        },
+        {
+          question: "Saat di sebuah pesta, Anda cenderung...",
+          options: {
+            a: "Berbicara dengan banyak orang, termasuk orang baru",
+            b: "Berbicara dengan beberapa teman dekat saja",
+          },
+          scores: { a: { axis: "E", value: 1 }, b: { axis: "I", value: 1 } },
+        },
+        {
+          question: "Anda lebih suka...",
+          options: { a: "Bekerja dalam kelompok", b: "Bekerja sendirian" },
+          scores: { a: { axis: "E", value: 1 }, b: { axis: "I", value: 1 } },
+        },
+        {
+          question: "Dalam memproses pikiran, Anda lebih sering...",
+          options: {
+            a: "Berbicara sambil berpikir (think out loud)",
+            b: "Memikirkannya matang-matang sebelum berbicara",
+          },
+          scores: { a: { axis: "E", value: 1 }, b: { axis: "I", value: 1 } },
+        },
+        {
+          question: "Lingkaran pertemanan Anda...",
+          options: {
+            a: "Luas, dengan banyak kenalan",
+            b: "Kecil, dengan hubungan yang mendalam",
+          },
+          scores: { a: { axis: "E", value: 1 }, b: { axis: "I", value: 1 } },
+        },
+        {
+          question: "Saat akhir pekan, Anda lebih memilih...",
+          options: {
+            a: "Pergi keluar dan mencari aktivitas sosial",
+            b: "Tinggal di rumah untuk bersantai atau menekuni hobi",
+          },
+          scores: { a: { axis: "E", value: 1 }, b: { axis: "I", value: 1 } },
+        },
+        {
+          question: "Ketika menghadapi masalah, Anda lebih cenderung...",
+          options: {
+            a: "Mendiskusikannya dengan orang lain untuk mendapat perspektif baru",
+            b: "Merenungkannya sendiri hingga menemukan solusi",
+          },
+          scores: { a: { axis: "E", value: 1 }, b: { axis: "I", value: 1 } },
+        },
+        {
+          question: "Ide-ide terbaik Anda sering muncul saat...",
+          options: {
+            a: "Berada di tengah-tengah diskusi yang hidup",
+            b: "Dalam ketenangan saat Anda sendirian",
+          },
+          scores: { a: { axis: "E", value: 1 }, b: { axis: "I", value: 1 } },
+        },
+
+        // Dimensi 2: Memperoleh Informasi (Realis vs Intuitif) - 8 Pertanyaan
+        {
+          question:
+            "Saat mempelajari sesuatu yang baru, Anda lebih fokus pada...",
+          options: {
+            a: "Fakta konkret dan detail praktis",
+            b: "Konsep, teori, dan kemungkinan di baliknya",
+          },
+          scores: { a: { axis: "R", value: 1 }, b: { axis: "N", value: 1 } },
+        },
+        {
+          question: "Anda lebih mempercayai...",
+          options: {
+            a: "Pengalaman langsung dan apa yang nyata",
+            b: "Intuisi dan firasat",
+          },
+          scores: { a: { axis: "R", value: 1 }, b: { axis: "N", value: 1 } },
+        },
+        {
+          question: "Dalam percakapan, Anda lebih tertarik pada...",
+          options: {
+            a: "Apa yang dikatakan secara harfiah",
+            b: "Makna tersembunyi dan apa yang tidak dikatakan",
+          },
+          scores: { a: { axis: "R", value: 1 }, b: { axis: "N", value: 1 } },
+        },
+        {
+          question: "Anda mendeskripsikan diri Anda sebagai orang yang...",
+          options: { a: "Praktis dan membumi", b: "Imajinatif dan visioner" },
+          scores: { a: { axis: "R", value: 1 }, b: { axis: "N", value: 1 } },
+        },
+        {
+          question: "Saat mengerjakan sebuah proyek, Anda lebih suka...",
+          options: {
+            a: "Mengikuti langkah-langkah yang sudah terbukti berhasil",
+            b: "Mencari cara baru dan inovatif untuk menyelesaikannya",
+          },
+          scores: { a: { axis: "R", value: 1 }, b: { axis: "N", value: 1 } },
+        },
+        {
+          question: "Anda lebih tertarik pada...",
+          options: {
+            a: "Masa kini dan realitas saat ini",
+            b: "Masa depan dan berbagai kemungkinannya",
+          },
+          scores: { a: { axis: "R", value: 1 }, b: { axis: "N", value: 1 } },
+        },
+        {
+          question: "Saat merakit perabotan baru, Anda akan...",
+          options: {
+            a: "Langsung mengikuti buku panduan langkah demi langkah",
+            b: "Melihat gambar hasil akhir dan mencoba mencari tahu sendiri caranya",
+          },
+          scores: { a: { axis: "R", value: 1 }, b: { axis: "N", value: 1 } },
+        },
+        {
+          question: "Anda lebih tertarik pada novel yang...",
+          options: {
+            a: "Menceritakan kisah nyata dengan detail akurat",
+            b: "Mengeksplorasi dunia fantasi dengan sistem sihir yang kompleks",
+          },
+          scores: { a: { axis: "R", value: 1 }, b: { axis: "N", value: 1 } },
+        },
+
+        // Dimensi 3: Mengambil Keputusan (Logis vs Perasa) - 7 Pertanyaan
+        {
+          question:
+            "Saat mengambil keputusan penting, Anda lebih mengandalkan...",
+          options: {
+            a: "Analisis logis dan objektivitas",
+            b: "Nilai-nilai pribadi dan dampaknya pada orang lain",
+          },
+          scores: { a: { axis: "L", value: 1 }, b: { axis: "F", value: 1 } },
+        },
+        {
+          question: "Memberi kritik kepada orang lain terasa...",
+          options: {
+            a: "Penting untuk perbaikan, meski terkadang sulit",
+            b: "Sangat tidak nyaman karena bisa menyakiti perasaan",
+          },
+          scores: { a: { axis: "L", value: 1 }, b: { axis: "F", value: 1 } },
+        },
+        {
+          question: "Anda lebih bangga disebut sebagai orang yang...",
+          options: { a: "Adil dan konsisten", b: "Penuh empati dan penyayang" },
+          scores: { a: { axis: "L", value: 1 }, b: { axis: "F", value: 1 } },
+        },
+        {
+          question: "Dalam sebuah argumen, prioritas Anda adalah...",
+          options: {
+            a: "Menemukan kebenaran objektif",
+            b: "Menjaga keharmonisan hubungan",
+          },
+          scores: { a: { axis: "L", value: 1 }, b: { axis: "F", value: 1 } },
+        },
+        {
+          question: "Keputusan yang baik menurut Anda adalah yang...",
+          options: {
+            a: "Masuk akal dan efisien",
+            b: "Mempertimbangkan perasaan semua pihak",
+          },
+          scores: { a: { axis: "L", value: 1 }, b: { axis: "F", value: 1 } },
+        },
+        {
+          question: "Saat teman Anda punya masalah, Anda cenderung...",
+          options: {
+            a: "Menawarkan solusi dan langkah-langkah praktis",
+            b: "Memberikan dukungan emosional dan mendengarkan",
+          },
+          scores: { a: { axis: "L", value: 1 }, b: { axis: "F", value: 1 } },
+        },
+        {
+          question:
+            "Ketika harus membuat keputusan yang akan mempengaruhi tim Anda, pertimbangan utama Anda adalah...",
+          options: {
+            a: "Apa hasil yang paling efisien dan logis untuk perusahaan",
+            b: "Bagaimana keputusan ini akan dirasakan oleh setiap anggota tim",
+          },
+          scores: { a: { axis: "L", value: 1 }, b: { axis: "F", value: 1 } },
+        },
+
+        // Dimensi 4: Gaya Hidup (Terstruktur vs Fleksibel) - 7 Pertanyaan
+        {
+          question: "Anda lebih suka hidup dengan...",
+          options: {
+            a: "Rencana yang jelas dan jadwal yang teratur",
+            b: "Pilihan yang terbuka dan spontanitas",
+          },
+          scores: { a: { axis: "T", value: 1 }, b: { axis: "S", value: 1 } },
+        },
+        {
+          question: "Saat mengerjakan tugas, Anda cenderung...",
+          options: {
+            a: "Menyelesaikannya jauh sebelum tenggat waktu",
+            b: "Bekerja di bawah tekanan mendekati tenggat waktu",
+          },
+          scores: { a: { axis: "T", value: 1 }, b: { axis: "S", value: 1 } },
+        },
+        {
+          question: "Lingkungan kerja yang ideal bagi Anda adalah yang...",
+          options: {
+            a: "Terorganisir dan dapat diprediksi",
+            b: "Dinamis dan penuh kejutan",
+          },
+          scores: { a: { axis: "T", value: 1 }, b: { axis: "S", value: 1 } },
+        },
+        {
+          question: "Saat merencanakan liburan, Anda akan...",
+          options: {
+            a: "Membuat itinerary detail dari jauh-jauh hari",
+            b: "Memutuskan tujuan secara spontan dan melihat situasi",
+          },
+          scores: { a: { axis: "T", value: 1 }, b: { axis: "S", value: 1 } },
+        },
+        {
+          question: "Membuat daftar pekerjaan (to-do list) terasa...",
+          options: {
+            a: "Sangat memuaskan dan membantu",
+            b: "Terlalu membatasi dan kaku",
+          },
+          scores: { a: { axis: "T", value: 1 }, b: { axis: "S", value: 1 } },
+        },
+        {
+          question: "Anda melihat aturan sebagai...",
+          options: {
+            a: "Panduan penting untuk efisiensi dan ketertiban",
+            b: "Saran yang bisa disesuaikan atau diabaikan jika perlu",
+          },
+          scores: { a: { axis: "T", value: 1 }, b: { axis: "S", value: 1 } },
+        },
+        {
+          question:
+            "Melihat email yang belum dibaca di kotak masuk Anda membuat Anda merasa...",
+          options: {
+            a: "Termotivasi untuk segera membereskannya",
+            b: "Tidak terlalu terganggu, akan ditangani nanti",
+          },
+          scores: { a: { axis: "T", value: 1 }, b: { axis: "S", value: 1 } },
+        },
+      ];
+
+      const traitExplanations = {
+        Ekstrovert:
+          "Orang dengan skor Ekstrovert tinggi mendapatkan energi dari interaksi dengan dunia luar. Mereka cenderung ramah, banyak bicara, dan nyaman berada di tengah keramaian atau bekerja dalam tim.",
+        Introvert:
+          "Orang dengan skor Introvert tinggi mendapatkan energi dari dunia internal mereka (pikiran dan perasaan). Mereka lebih suka interaksi yang mendalam dengan sedikit orang, menikmati kesendirian, dan cenderung menjadi pendengar yang baik.",
+        Realis:
+          "Orang dengan skor Realis tinggi fokus pada informasi yang nyata dan konkret yang mereka terima melalui panca indera. Mereka praktis, membumi, dan lebih memperhatikan detail dan fakta saat ini daripada kemungkinan di masa depan.",
+        Intuitif:
+          "Orang dengan skor Intuitif tinggi lebih memperhatikan pola, kesan, dan makna di balik informasi. Mereka imajinatif, visioner, dan lebih tertarik pada kemungkinan masa depan dan konsep-konsep abstrak.",
+        Logis:
+          "Orang dengan skor Logis tinggi membuat keputusan berdasarkan objektivitas dan analisis. Mereka menghargai kebenaran, konsistensi, dan keadilan, serta cenderung mengesampingkan perasaan pribadi saat mengambil keputusan.",
+        Perasa:
+          "Orang dengan skor Perasa tinggi membuat keputusan berdasarkan nilai-nilai pribadi dan dampaknya pada orang lain. Mereka empatik, harmonis, dan mempertimbangkan perasaan orang lain sebagai faktor penting dalam pengambilan keputusan.",
+        Terstruktur:
+          "Orang dengan skor Terstruktur tinggi lebih suka gaya hidup yang terencana dan terorganisir. Mereka suka membuat keputusan, memiliki aturan yang jelas, dan merasa nyaman ketika segala sesuatunya dapat diprediksi dan terkendali.",
+        Spontan:
+          "Orang dengan skor Spontan (atau Fleksibel) tinggi lebih suka gaya hidup yang fleksibel dan adaptif. Mereka suka membiarkan pilihan tetap terbuka, menikmati kejutan, dan merasa nyaman dengan perubahan yang tidak terduga.",
+      };
+
+      // --- LOGIKA APLIKASI ---
+
+      // Elemen DOM
+      const startScreen = document.getElementById("start-screen");
+      const quizScreen = document.getElementById("quiz-screen");
+      const resultScreen = document.getElementById("result-screen");
+      const startBtn = document.getElementById("start-quiz-btn");
+      const retakeBtn = document.getElementById("retake-quiz-btn");
+      const questionNumberEl = document.getElementById("question-number");
+      const questionTextEl = document.getElementById("question-text");
+      const optionABtn = document.getElementById("option-a");
+      const optionBBtn = document.getElementById("option-b");
+      const progressBar = document.getElementById("progress-bar");
+      const progressPercent = document.getElementById("progress-percent");
+      const resultTypeEl = document.getElementById("result-type");
+      const resultTitleEl = document.getElementById("result-title");
+      const chartCanvas = document.getElementById("result-chart");
+      const copyBtn = document.getElementById("copy-link-btn");
+      const notification = document.getElementById("notification");
+      const darkModeToggle = document.getElementById("darkModeToggle");
+      const sunIcon = document.getElementById("sunIcon");
+      const moonIcon = document.getElementById("moonIcon");
+      const traitModal = document.getElementById("trait-modal");
+      const modalTitle = document.getElementById("modal-title");
+      const modalContent = document.getElementById("modal-content");
+      const modalCloseBtn = document.getElementById("modal-close-btn");
+
+      // Variabel State
+      let currentQuestionIndex = 0;
+      let scores = { E: 0, I: 0, R: 0, N: 0, L: 0, F: 0, T: 0, S: 0 };
+      let resultChart = null;
+      let finalResultType = "";
+
+      // Inisialisasi
+      document.addEventListener("DOMContentLoaded", init);
+
+      function init() {
+        startBtn.addEventListener("click", startQuiz);
+        retakeBtn.addEventListener("click", startQuiz);
+        optionABtn.addEventListener("click", () => selectAnswer("a"));
+        optionBBtn.addEventListener("click", () => selectAnswer("b"));
+        copyBtn.addEventListener("click", copyResultLink);
+        modalCloseBtn.addEventListener("click", hideTraitModal);
+        traitModal.addEventListener("click", (e) => {
+          if (e.target === traitModal) {
+            hideTraitModal();
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          if (resultScreen.classList.contains("hidden") === false) {
+            createRadarChart();
+          }
+        });
+
+        // Logika Dark Mode
+        if (
+          localStorage.getItem("color-theme") === "dark" ||
+          (!("color-theme" in localStorage) &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          document.documentElement.classList.add("dark");
+          sunIcon.classList.add("hidden");
+          moonIcon.classList.remove("hidden");
+        } else {
+          document.documentElement.classList.remove("dark");
+          sunIcon.classList.remove("hidden");
+          moonIcon.classList.add("hidden");
+        }
+
+        darkModeToggle.addEventListener("click", () => {
+          sunIcon.classList.toggle("hidden");
+          moonIcon.classList.toggle("hidden");
+
+          if (localStorage.getItem("color-theme")) {
+            if (localStorage.getItem("color-theme") === "light") {
+              document.documentElement.classList.add("dark");
+              localStorage.setItem("color-theme", "dark");
+            } else {
+              document.documentElement.classList.remove("dark");
+              localStorage.setItem("color-theme", "light");
+            }
+          } else {
+            if (document.documentElement.classList.contains("dark")) {
+              document.documentElement.classList.remove("dark");
+              localStorage.setItem("color-theme", "light");
+            } else {
+              document.documentElement.classList.add("dark");
+              localStorage.setItem("color-theme", "dark");
+            }
+          }
+          if (resultChart) {
+            updateChartAppearance();
+          }
+        });
+      }
+
+      function startQuiz() {
+        currentQuestionIndex = 0;
+        scores = { E: 0, I: 0, R: 0, N: 0, L: 0, F: 0, T: 0, S: 0 };
+
+        startScreen.classList.add("hidden");
+        resultScreen.classList.add("hidden");
+        quizScreen.classList.remove("hidden");
+
+        questionTextEl.classList.add("question-transition");
+        optionABtn.classList.add("question-transition");
+        optionBBtn.classList.add("question-transition");
+
+        showQuestion();
+      }
+
+      function showQuestion() {
+        const question = questions[currentQuestionIndex];
+
+        questionNumberEl.textContent = currentQuestionIndex + 1;
+        questionTextEl.textContent = question.question;
+        optionABtn.querySelector("span").textContent = question.options.a;
+        optionBBtn.querySelector("span").textContent = question.options.b;
+
+        const progress = (currentQuestionIndex / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressPercent.textContent = `${Math.round(progress)}%`;
+      }
+
+      function selectAnswer(choice) {
+        const question = questions[currentQuestionIndex];
+        const scoreInfo = question.scores[choice];
+        scores[scoreInfo.axis] += scoreInfo.value;
+
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+          questionTextEl.style.opacity = "0";
+          optionABtn.style.opacity = "0";
+          optionBBtn.style.opacity = "0";
+
+          setTimeout(() => {
+            showQuestion();
+            questionTextEl.style.opacity = "1";
+            optionABtn.style.opacity = "1";
+            optionBBtn.style.opacity = "1";
+          }, 300);
+        } else {
+          progressBar.style.width = "100%";
+          progressPercent.textContent = "100%";
+          setTimeout(showResults, 500);
+        }
+      }
+
+      function calculateResult() {
+        let result = "";
+        result += scores.E > scores.I ? "E" : "I";
+        result += scores.R > scores.N ? "R" : "N";
+        result += scores.L > scores.F ? "L" : "F";
+        result += scores.T > scores.S ? "T" : "S";
+        return result;
+      }
+
+      function generatePersonalityContent(type) {
+        const map = {
+          E: {
+            name: "Ekstrovert",
+            desc: "Anda mendapatkan energi dari interaksi sosial.",
+          },
+          I: {
+            name: "Introvert",
+            desc: "Anda mendapatkan energi dari waktu menyendiri.",
+          },
+          R: {
+            name: "Realis",
+            desc: "Anda fokus pada fakta dan detail praktis.",
+          },
+          N: {
+            name: "Intuitif",
+            desc: "Anda fokus pada ide dan konsep abstrak.",
+          },
+          L: {
+            name: "Logis",
+            desc: "Anda membuat keputusan berdasarkan logika objektif.",
+          },
+          F: {
+            name: "Perasa",
+            desc: "Anda membuat keputusan berdasarkan nilai dan empati.",
+          },
+          T: {
+            name: "Terstruktur",
+            desc: "Anda menyukai rencana, keteraturan, dan kepastian.",
+          },
+          S: {
+            name: "Spontan",
+            desc: "Anda menyukai fleksibilitas, spontanitas, dan pilihan terbuka.",
+          },
+        };
+
+        const typeChars = type.split("");
+        const titleMap = {
+          IRLT: "Sang Analis Logis",
+          ENFS: "Sang Inspirator Hangat",
+          IRLF: "Sang Pelindung Setia",
+          ENFT: "Sang Juara Visioner",
+          IRNT: "Sang Arsitek Konseptual",
+          ENLS: "Sang Penggerak Dinamis",
+          IRNF: "Sang Mediator Idealistis",
+          ENLT: "Sang Komandan Karismatik",
+          ISLT: "Sang Pengrajin Teliti",
+          ERLS: "Sang Penghibur Ceria",
+          ISLF: "Sang Seniman Fleksibel",
+          ERLT: "Sang Konsul Populer",
+          ISNT: "Sang Virtuoso Eksperimental",
+          ERNS: "Sang Petualang Enerjik",
+          ISNF: "Sang Petualang Artistik",
+          ERNT: "Sang Eksekutif Tegas",
+        };
+
+        const careerMap = {
+          I: ["Peneliti", "Penulis", "Programmer"],
+          R: ["Akuntan", "Insinyur", "Dokter"],
+          L: ["Analis Data", "Pengacara", "Ilmuwan"],
+          T: ["Manajer Proyek", "Auditor", "Administrator"],
+          E: ["Marketing", "Guru", "Manajer Penjualan"],
+          N: ["Strategis", "Desainer", "Psikolog"],
+          F: ["Konselor", "Pekerja Sosial", "HRD"],
+          S: ["Wirausahawan", "Jurnalis", "Fotografer"],
+        };
+
+        let description = `Anda adalah kombinasi unik dari ${
+          map[typeChars[0]].name
+        }, ${map[typeChars[1]].name}, ${map[typeChars[2]].name}, dan ${
+          map[typeChars[3]].name
+        }. ${map[typeChars[0]].desc} ${map[typeChars[1]].desc} ${
+          map[typeChars[2]].desc
+        } ${map[typeChars[3]].desc}`;
+
+        let careers = [
+          ...new Set([
+            ...careerMap[typeChars[0]],
+            ...careerMap[typeChars[1]],
+            ...careerMap[typeChars[2]],
+            ...careerMap[typeChars[3]],
+          ]),
+        ];
+
+        let communication = `Gaya komunikasi Anda cenderung ${
+          typeChars[2] === "L"
+            ? "langsung dan berbasis logika"
+            : "hangat dan empatik"
+        }. Anda ${
+          typeChars[1] === "R"
+            ? "menyukai pembahasan fakta"
+            : "menikmati diskusi tentang ide besar"
+        }. Saat berkomunikasi, ${
+          typeChars[0] === "I"
+            ? "Anda lebih suka percakapan satu lawan satu yang mendalam"
+            : "Anda menikmati interaksi kelompok yang dinamis"
+        }.`;
+
+        const partnerType =
+          typeChars[0] +
+          (typeChars[1] === "R" ? "N" : "R") +
+          (typeChars[2] === "L" ? "F" : "L") +
+          (Math.random() > 0.5 ? "T" : "S");
+        const partnerType2 =
+          (typeChars[0] === "E" ? "I" : "E") +
+          typeChars[1] +
+          typeChars[2] +
+          (typeChars[3] === "T" ? "S" : "T");
+
+        return {
+          title: titleMap[type] || "Tipe Unik",
+          description: description,
+          careers: careers.slice(0, 4).join(", "),
+          communication: communication,
+          partners: `${partnerType}, ${partnerType2}`,
+        };
+      }
+
+      function showResults() {
+        finalResultType = calculateResult();
+        const content = generatePersonalityContent(finalResultType);
+
+        resultTypeEl.textContent = finalResultType;
+        resultTitleEl.textContent = content.title;
+
+        const accordionContainer = document.getElementById(
+          "accordion-container"
+        );
+        accordionContainer.innerHTML = "";
+
+        // Membuat konten untuk Penjelasan Sifat
+        let traitExplanationHtml =
+          '<ul class="space-y-4 list-disc list-inside">';
+        for (const trait in traitExplanations) {
+          traitExplanationHtml += `<li><strong class="font-semibold text-gray-800 dark:text-gray-100">${trait}:</strong> ${traitExplanations[trait]}</li>`;
+        }
+        traitExplanationHtml += "</ul>";
+
+        // Mengatur urutan data untuk akordeon
+        const accordionData = [
+          { title: "Penjelasan Sifat", content: traitExplanationHtml },
+          { title: "Deskripsi Lengkap", content: content.description },
+          { title: "Saran Karir", content: content.careers },
+          { title: "Gaya Komunikasi", content: content.communication },
+          { title: "Pasangan Cocok", content: content.partners },
+        ];
+
+        accordionData.forEach((item, index) => {
+          accordionContainer.innerHTML += `
+                <div class="border-b border-gray-200 dark:border-gray-600">
+                    <h2>
+                        <button type="button" class="flex items-center justify-between w-full p-5 font-medium text-left" data-accordion-target="#accordion-body-${index}">
+                            <span>${item.title}</span>
+                            <svg data-accordion-icon class="w-6 h-6 shrink-0 transition-transform duration-300 rotate-180" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </h2>
+                    <div id="accordion-body-${index}" class="accordion-content">
+                        <div class="p-5 pt-0 text-gray-500 dark:text-gray-400">
+                            <div class="mb-2">${item.content}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        const accordionButtons = accordionContainer.querySelectorAll(
+          "[data-accordion-target]"
+        );
+
+        accordionButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            const targetId = button.getAttribute("data-accordion-target");
+            const targetEl = document.querySelector(targetId);
+            const icon = button.querySelector("[data-accordion-icon]");
+
+            icon.classList.toggle("rotate-180");
+
+            if (targetEl.style.maxHeight) {
+              targetEl.style.maxHeight = null;
+            } else {
+              targetEl.style.maxHeight = targetEl.scrollHeight + "px";
+            }
+          });
+        });
+
+        if (accordionButtons.length > 0) {
+          const firstButton = accordionButtons[0];
+          const firstTarget = document.querySelector(
+            firstButton.getAttribute("data-accordion-target")
+          );
+          const firstIcon = firstButton.querySelector("[data-accordion-icon]");
+
+          firstIcon.classList.remove("rotate-180");
+          firstTarget.style.maxHeight = firstTarget.scrollHeight + "px";
+        }
+
+        createRadarChart();
+
+        quizScreen.classList.add("hidden");
+        resultScreen.classList.remove("hidden");
+        window.scrollTo(0, 0);
+      }
+
+      function getChartColors() {
+        const isDark = document.documentElement.classList.contains("dark");
+        return {
+          gridColor: isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
+          labelColor: isDark ? "#E5E7EB" : "#374151",
+          ticksColor: isDark ? "#9CA3AF" : "#6B7280",
+        };
+      }
+
+      function showTraitModal(trait) {
+        modalTitle.textContent = trait;
+        modalContent.textContent =
+          traitExplanations[trait] || "Penjelasan tidak ditemukan.";
+        traitModal.classList.remove("hidden");
+        traitModal.classList.add("flex");
+      }
+
+      function hideTraitModal() {
+        traitModal.classList.add("hidden");
+        traitModal.classList.remove("flex");
+      }
+
+      function createRadarChart() {
+        if (resultChart) {
+          resultChart.destroy();
+        }
+
+        const colors = getChartColors();
+        const isMobile = window.innerWidth < 768;
+
+        const data = {
+          labels: [
+            "Ekstrovert",
+            "Introvert",
+            "Realis",
+            "Intuitif",
+            "Logis",
+            "Perasa",
+            "Terstruktur",
+            "Spontan",
+          ],
+          datasets: [
+            {
+              label: "Skor Anda",
+              data: [
+                scores.E,
+                scores.I,
+                scores.R,
+                scores.N,
+                scores.L,
+                scores.F,
+                scores.T,
+                scores.S,
+              ],
+              fill: true,
+              backgroundColor: "rgba(99, 102, 241, 0.2)",
+              borderColor: "rgb(99, 102, 241)",
+              pointBackgroundColor: "rgb(99, 102, 241)",
+              pointBorderColor: "#fff",
+              pointHoverBackgroundColor: "#fff",
+              pointHoverBorderColor: "rgb(99, 102, 241)",
+            },
+          ],
+        };
+
+        const config = {
+          type: "radar",
+          data: data,
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            elements: { line: { borderWidth: 3 } },
+            onClick: (event, elements, chart) => {
+              const scale = chart.scales.r;
+              const clickX = event.x;
+              const clickY = event.y;
+
+              scale._pointLabelItems.forEach((label, index) => {
+                const { x, y, width, height } = label;
+                if (
+                  clickX >= x - width / 2 &&
+                  clickX <= x + width / 2 &&
+                  clickY >= y - height / 2 &&
+                  clickY <= y + height
+                ) {
+                  showTraitModal(chart.data.labels[index]);
+                }
+              });
+            },
+            onHover: (event, chartElement, chart) => {
+              const canvas = chart.canvas;
+              canvas.style.cursor = "default";
+              const scale = chart.scales.r;
+              const hoverX = event.x;
+              const hoverY = event.y;
+
+              let onLabel = false;
+              scale._pointLabelItems.forEach((label) => {
+                const { x, y, width, height } = label;
+                if (
+                  hoverX >= x - width / 2 &&
+                  hoverX <= x + width / 2 &&
+                  hoverY >= y - height / 2 &&
+                  hoverY <= y + height
+                ) {
+                  onLabel = true;
+                }
+              });
+
+              if (onLabel) {
+                canvas.style.cursor = "pointer";
+              }
+            },
+            scales: {
+              r: {
+                angleLines: { color: colors.gridColor },
+                grid: { color: colors.gridColor },
+                pointLabels: {
+                  color: colors.labelColor,
+                  font: {
+                    size: isMobile ? 10 : 12,
+                    weight: "bold",
+                  },
+                },
+                ticks: {
+                  display: false,
+                  stepSize: 2,
+                },
+                suggestedMin: 0,
+                suggestedMax: 8,
+              },
+            },
+            plugins: { legend: { display: false } },
+          },
+        };
+        resultChart = new Chart(chartCanvas, config);
+      }
+
+      function updateChartAppearance() {
+        if (!resultChart) return;
+        const colors = getChartColors();
+
+        resultChart.options.scales.r.angleLines.color = colors.gridColor;
+        resultChart.options.scales.r.grid.color = colors.gridColor;
+        resultChart.options.scales.r.pointLabels.color = colors.labelColor;
+        resultChart.options.scales.r.ticks.color = colors.ticksColor;
+        resultChart.options.plugins.legend.labels.color = colors.labelColor;
+
+        resultChart.update();
+      }
+
+      function shareTo(platform) {
+        const text = `Saya mendapatkan tipe kepribadian ${finalResultType} - ${resultTitleEl.textContent}! Cari tahu kepribadianmu di sini:`;
+        const url = window.location.href;
+        let shareUrl = "";
+
+        if (platform === "twitter") {
+          shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+            url
+          )}&text=${encodeURIComponent(text)}`;
+        } else if (platform === "facebook") {
+          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+            url
+          )}&quote=${encodeURIComponent(text)}`;
+        }
+
+        if (shareUrl) {
+          window.open(shareUrl, "_blank", "width=600,height=400");
+        }
+      }
+
+      function copyResultLink() {
+        const textToCopy = `Saya mendapatkan tipe kepribadian ${finalResultType} - ${resultTitleEl.textContent}! Cari tahu kepribadianmu di sini: ${window.location.href}`;
+
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand("copy");
+          showNotification("Tautan disalin ke clipboard!");
+        } catch (err) {
+          showNotification("Gagal menyalin tautan.", true);
+        }
+        document.body.removeChild(textArea);
+      }
+
+      function showNotification(message, isError = false) {
+        notification.textContent = message;
+        notification.classList.remove("bg-green-500", "bg-red-500");
+        notification.classList.add(isError ? "bg-red-500" : "bg-green-500");
+        notification.classList.remove("opacity-0");
+
+        setTimeout(() => {
+          notification.classList.add("opacity-0");
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>
